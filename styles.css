@@ -17,3 +17,6 @@ body{background-color:#f7f8f3;background-image:radial-gradient(circle at 12% 13%
 .showcase-card{box-shadow:0 4px 0 rgba(32,35,29,.06)}
 .showcase-card:hover{box-shadow:0 7px 0 rgba(32,35,29,.06),0 18px 40px #20231d10}
 @media(prefers-reduced-motion:reduce){.button,.bubble-button,.round-arrow,.new-project,.project-open{transition:none}}
+
+/* Removed the promotional ticker and discover showcase. */
+.ticker,.discover,.scroll-note{display:none!important}
