@@ -17,3 +17,32 @@
 #pythonCode:focus{border-color:#9fce78;box-shadow:0 0 0 2px #b9f27c20}
 .python-footer{display:flex;justify-content:space-between;margin-top:9px}
 @media(max-width:900px){.editor-layout{grid-template-columns:140px minmax(0,1fr)}.inspector{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+
+.editor-layout{grid-template-columns:210px minmax(0,1fr) 235px}
+.hierarchy{display:flex;flex-direction:column;min-height:0;max-height:780px;overflow:hidden}
+.object-list{max-height:250px;overflow:auto}
+.filesystem{border-top:1px solid var(--line);margin-top:12px;min-height:160px;display:flex;flex-direction:column;overflow:hidden}
+.filesystem-actions{display:flex;flex-wrap:wrap;gap:4px;padding:7px}
+.filesystem-actions button{border:1px solid #e3e8de;background:#fff;border-radius:6px;padding:5px 6px;font-size:9px;color:#58614f}
+.file-tree{overflow:auto;min-height:50px;padding:2px 6px 10px}
+.file-row{width:100%;display:flex;align-items:center;gap:7px;border:0;background:transparent;text-align:left;padding:6px;border-radius:5px;font-size:10px;color:#5d6557;min-width:0}
+.file-row span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-row:hover{background:#eef5e7}.file-row.folder{font-weight:700;color:#4c5a40}
+.file-icon{width:13px;flex:none;color:#7b9a62}.file-empty{font-size:10px;color:#969d90;padding:12px 7px}
+.add-node-wrap{position:relative}.add-node-menu{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:190px;padding:7px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 38px #1b27162b}
+.add-node-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:8px 10px;border-radius:7px;font-size:11px;color:#424a3c}
+.add-node-menu button:hover{background:#edf5e6}
+.add-node-title{font-size:8px;letter-spacing:1.1px;font-weight:800;color:#8a9282;padding:7px 10px 4px}
+.object-components{display:flex;flex-direction:column;gap:8px}
+.attached-component{padding:9px;border:1px solid #e2e7dc;border-radius:8px;background:#f9fbf6}
+.attached-component>b{font-size:11px}.attached-component label{font-size:10px;margin:9px 0}
+.attached-component input{width:100%;padding:6px;border:1px solid #dfe4d9;border-radius:6px;background:white;font-size:11px}
+.component-remove{border:0;background:transparent;color:#b54d44;font-size:10px;padding:4px 0}
+.inspector .object-components+.outline{margin-top:7px}.inspector form>.outline{margin-top:7px}
+.code-editor-wrap{position:relative}
+#pythonCode{min-height:300px}
+.python-suggestions{position:absolute;z-index:25;left:18px;bottom:18px;width:min(380px,calc(100% - 36px));max-height:180px;overflow:auto;background:#20251e;border:1px solid #596650;border-radius:8px;box-shadow:0 10px 30px #0005;padding:4px}
+.python-suggestions button{display:block;width:100%;border:0;background:transparent;color:#d9efc9;text-align:left;padding:7px 9px;border-radius:5px;font:11px ui-monospace,monospace}
+.python-suggestions button:hover{background:#384332}
+.python-console{background:#171915;border:1px solid #3b4236;border-radius:7px;color:#a9c99a;padding:9px 12px;margin-top:8px;font:11px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:1050px){.editor-layout{grid-template-columns:185px minmax(0,1fr)}.inspector{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);padding:12px}.hierarchy{max-height:600px}}
