@@ -4,8 +4,8 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f5f7f1"><title>MetalGui Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="studio.css?v=20261020-2">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script src="studio.js?v=20261020-2" defer></script>
+<link rel="stylesheet" href="studio.css?v=20261020-3">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script src="studio.js?v=20261020-3" defer></script>
 </head>
 <body>
 <div class="auth-screen" id="authScreen">
@@ -13,7 +13,7 @@
   <section class="auth-card"><div class="eyebrow"><i></i> YOUR CREATIVE WORKSPACE</div><h1>Make it <span>playable.</span></h1><p class="muted">Sign in to keep building, or create an account to start your first project.</p>
   <div class="auth-tabs"><button class="active" data-auth-mode="signin">Log in</button><button data-auth-mode="signup">Create account</button></div>
   <form id="authForm"><label>Email<input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></label><label>Password<input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label><button class="primary full" id="authSubmit" type="submit">Log in <span>↗</span></button></form>
-  <p class="message" id="authMessage" role="status"></p><small>Protected by Supabase Auth. Your projects are private to your account.</small></section>
+  <p class="message" id="authMessage" role="status"></p><button class="outline full" id="openLocalWorkspace" type="button">Open local workspace ↗</button><small>Use cloud sign-in for account sync, or work locally in this browser without signing in.</small></section>
   <a class="back-home" href="index.html">← Back to MetalGui</a>
 </div>
 <div class="app" id="app" hidden>
