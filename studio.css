@@ -51,3 +51,90 @@
 .code-block-menu{position:absolute;z-index:30;right:0;top:calc(100% + 5px);width:170px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px #0002}
 .code-block-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:6px;font-size:11px;color:#414a38}
 .code-block-menu button:hover{background:#edf5e6}
+
+
+/* MetalGui Studio desktop-app refresh */
+:root{--ink:#20241d;--line:#dfe5d9;--lime:#c9f36b;--paper:#f1f3ed;--shadow:0 14px 36px #1821140c}
+body{background:#eef0e9;color:#20241d}
+.app{grid-template-columns:238px minmax(0,1fr);min-height:100vh;background:#f7f8f4}
+.sidebar{background:#20241e;color:#f4f6ef;border-right:1px solid #30362d;padding:23px 15px 14px;gap:7px}
+.sidebar .brand{color:#f4f6ef;padding:0 8px 20px;font-size:23px}
+.sidebar .brand-light{color:#aeb6a5}
+.sidebar .brand-mark{background:#c9f36b}
+.sidebar .brand-mark i{background:#20241e}
+.sidebar .new-project{border-radius:10px;box-shadow:0 3px 0 #8eaf40;font-size:12px;margin-bottom:18px}
+.sidebar .side-label{color:#929b88;padding:14px 10px 7px;font-size:9px;letter-spacing:1.5px}
+.sidebar .side-link{color:#c2c9ba;border-radius:9px;padding:10px 11px;text-align:left;font-size:12px}
+.sidebar .side-link:hover,.sidebar .side-link.active{background:#343c2e;color:#d7f8a0}
+.sidebar .side-projects{display:flex;flex-direction:column;gap:3px}
+.side-project{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border:0;border-radius:8px;background:transparent;color:#c5cdbd;text-align:left;font-size:11px}
+.side-project:hover{background:#2e3529;color:#fff}
+.tiny-dot{width:7px;height:7px;border-radius:3px;background:#a7d65d;flex:none}
+.sidebar-bottom{border-top:1px solid #3b4137;padding-top:14px;margin-top:auto}
+.user-badge{padding:10px 8px}
+.user-avatar{background:#c9f36b;color:#20241d;border-radius:10px;font-weight:800}
+.main{padding:26px clamp(16px,2.6vw,40px) 24px;min-width:0}
+.topline{margin-bottom:22px;padding:0 0 17px;border-bottom:1px solid #e0e5da}
+.crumb{color:#8b9384;font-size:9px;letter-spacing:1.7px}
+.topline h1{font-size:27px;letter-spacing:-1.1px}
+.save-state{padding:8px 11px;background:#fff;border:1px solid #e1e6dc;border-radius:9px}
+.welcome{border:1px solid #dce5d3;border-radius:20px;box-shadow:var(--shadow);background:linear-gradient(115deg,#edf7df,#f8faf4 70%,#e6f0dc)}
+.welcome>div:first-child{padding:35px}
+.welcome h2{letter-spacing:-2px}
+.welcome-art{background:radial-gradient(ellipse at 52% 43%,#d6e9c5,transparent 58%),linear-gradient(135deg,#f0f7e8,#e5efd9)}
+.project-card{border-color:#e1e6dc;border-radius:15px;box-shadow:0 3px 10px #1f2b1705}
+.project-card:hover{box-shadow:0 12px 26px #1f2b1712}
+.project-art{height:132px}
+.project-card-content{padding:16px}
+.card-actions button{cursor:pointer;transition:background .15s,transform .15s}
+.card-actions button:hover{transform:translateY(-1px)}
+.editor-view{border:1px solid #dbe1d5;border-radius:15px;overflow:visible;box-shadow:0 12px 34px #1925140b;background:#fff}
+.editor-toolbar{border-radius:15px 15px 0 0;background:#fbfcf9;padding:12px 14px}
+.tool{cursor:pointer;border:1px solid #e7ebe2}
+.tool-group.right .outline,.tool-group.right .primary{border-radius:9px}
+.tool-group.right .outline{background:#fff;border-color:#dfe5d9}
+.tool-group.right .outline:hover{background:#f1f6e9;border-color:#cbdab9}
+.play{background:#22281e!important;color:#d7f8a0!important;box-shadow:0 3px 0 #12160f!important}
+.editor-layout{grid-template-columns:220px minmax(0,1fr) 245px;min-height:560px;border-radius:0 0 14px 14px;overflow:hidden}
+.panel{background:#fbfcf9}
+.hierarchy{border-right:1px solid #e2e7de}
+.inspector{border-left:1px solid #e2e7de}
+.panel-heading{height:46px;color:#737c6b;letter-spacing:1.2px;background:#f8faf6}
+.panel-heading button{cursor:pointer;border-radius:6px}
+.panel-heading button:hover{background:#e9f2e1;color:#385a2b}
+.object-item{cursor:pointer;border:1px solid transparent;padding:9px 8px;font-size:11px}
+.object-item:hover{background:#f0f5eb}
+.object-item.selected{background:#eaf5e0;border-color:#d7e8c9}
+.scene-area{background:#f0f2ed}
+.scene-header,.scene-footer{background:#f8faf6}
+.canvas-wrap{padding:18px;min-height:360px}
+.canvas-wrap canvas{border-radius:9px;box-shadow:0 8px 24px #25321c0c}
+.canvas-hint{bottom:25px;left:27px}
+.inspector form{padding:0 14px 18px}
+.inspector input:not([type=checkbox]):not([type=color]){border:1px solid #e0e5dc;transition:border-color .15s,box-shadow .15s}
+.inspector input:focus{border-color:#a9ce80;box-shadow:0 0 0 3px #c9f36b35;outline:none}
+.inspector .outline,.inspector .danger{cursor:pointer;border-radius:8px}
+.filesystem{background:#fbfcf9}
+.filesystem-actions button{cursor:pointer;border-radius:7px;padding:6px 7px}
+.filesystem-actions button:hover{background:#edf5e6;border-color:#d1e3c0}
+.file-row{cursor:pointer;padding:7px;border:1px solid transparent}
+.file-row:hover{border-color:#e0e9d8}
+.python-panel{margin:0;background:#20241e;border-radius:0 0 14px 14px;padding:17px 18px}
+.python-heading{margin-bottom:3px}
+.python-tools .outline{cursor:pointer;border-radius:8px}
+.python-tools .outline:hover{background:#3a4332}
+#pythonCode{border-radius:10px;line-height:1.75}
+.python-console{border-radius:8px}
+.editor-status{border-radius:0 0 14px 14px;background:#fbfcf9;border-top:1px solid #e4e8e0}
+button,a,select{ -webkit-tap-highlight-color:transparent}
+button{cursor:pointer;transition:background-color .15s,border-color .15s,color .15s,transform .15s}
+button:focus-visible,a:focus-visible{outline:3px solid #a9d86b;outline-offset:2px}
+button:disabled{opacity:.58;cursor:wait;transform:none!important}
+[hidden]{display:none!important}
+.modal-backdrop{backdrop-filter:blur(7px);background:#182014a8}
+.modal{border:1px solid #e8ece3;box-shadow:0 24px 90px #0003}
+.modal input{border-radius:9px}
+.toast{border:1px solid #48513f}
+@media(max-width:1100px){.app{grid-template-columns:205px minmax(0,1fr)}.editor-layout{grid-template-columns:175px minmax(0,1fr)}}
+@media(max-width:800px){.sidebar{grid-template-columns:1fr auto;background:#20241e}.sidebar-bottom{border-top:1px solid #3b4137}.editor-layout{grid-template-columns:125px minmax(0,1fr)}.inspector{background:#fbfcf9}}
+@media(max-width:480px){.main{padding:17px 10px}.topline{gap:8px}.topline h1{font-size:22px}.top-actions .outline{padding:8px}.editor-toolbar{border-radius:12px 12px 0 0}.tool-group.right{gap:5px}.tool-group.right .outline,.tool-group.right .primary{padding:8px 9px}.canvas-wrap{padding:7px}.welcome>div:first-child{padding:23px}}
