@@ -11,7 +11,7 @@ const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()
 function toast(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2600)}
 function message(el,text,error=false){el.textContent=text;el.classList.toggle('error',error)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function defaultScene(template='empty',settings={}){return {version:1,objects:[],settings:{background:'#eaf2e5',gravity:9.8,resolution:settings.resolution||'1280x720',orientation:settings.orientation||'landscape',platform:settings.platform||'web',renderMode:'2d',template:'empty'}}}
+function defaultScene(template='empty',settings={}){return {version:1,script:'# MetalGui game script\n# Called every frame. dt is elapsed time in seconds.\ndef update(game, dt):\n    pass\n',objects:[],settings:{background:'#eaf2e5',gravity:9.8,resolution:settings.resolution||'1280x720',orientation:settings.orientation||'landscape',platform:settings.platform||'web',renderMode:'2d',template:'empty'}}}
 function setAuthMode(mode){$$('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));$('#authSubmit').innerHTML=mode==='signup'?'Create account <span>↗</span>':'Log in <span>↗</span>';$('#password').autocomplete=mode==='signup'?'new-password':'current-password';message($('#authMessage'),'')}
 $$('[data-auth-mode]').forEach(b=>b.addEventListener('click',()=>setAuthMode(b.dataset.authMode)));
 $('#authForm').addEventListener('submit',async e=>{e.preventDefault();if(!db){message($('#authMessage'),'Supabase client did not load. Check your connection and refresh.',true);return}const mode=$('.auth-tabs .active').dataset.authMode;const email=$('#email').value.trim();const password=$('#password').value;const submit=$('#authSubmit');submit.disabled=true;submit.textContent=mode==='signup'?'Creating account…':'Signing in…';message($('#authMessage'),'');try{const result=mode==='signup'?await db.auth.signUp({email,password}):await db.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(mode==='signup'&&!result.data.session){message($('#authMessage'),'Account created. Check your email to confirm it, then log in.');setAuthMode('signin')}else if(result.data.user){await startApp(result.data.user)}}catch(err){message($('#authMessage'),friendlyError(err.message),true)}finally{submit.disabled=false;submit.innerHTML=$('.auth-tabs .active').dataset.authMode==='signup'?'Create account <span>↗</span>':'Log in <span>↗</span>'}});
@@ -26,12 +26,110 @@ function showHome(){state.project=null;$('#projectHome').hidden=false;$('#editor
 $('#showProjects').addEventListener('click',showHome);$('#createProject').addEventListener('click',openProjectModal);$('#firstProject').addEventListener('click',openProjectModal);$('#closeModal').addEventListener('click',closeProjectModal);$('#projectModal').addEventListener('click',e=>{if(e.target===$('#projectModal'))closeProjectModal()});function openProjectModal(){$('#projectModal').hidden=false;$('#projectName').focus();message($('#projectMessage'),'')}function closeProjectModal(){$('#projectModal').hidden=true;$('#projectForm').reset()}
 $('#projectForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='Creating…';try{const name=$('#projectName').value.trim();const settings={platform:$('#projectPlatform').value,resolution:$('#projectResolution').value,orientation:$('#projectOrientation').value};if(!name)throw new Error('Give your project a name.');const {data,error}=await db.from('game_projects').insert({user_id:state.user.id,name,description:'',scene:defaultScene('empty',settings)}).select().single();if(error)throw error;state.projects.unshift(data);renderProjects();closeProjectModal();openProject(data.id);toast('Project created. Start building!')}catch(err){message($('#projectMessage'),friendlyError(err.message),true)}finally{btn.disabled=false;btn.innerHTML='Create project <span>↗</span>'}});
 async function deleteProject(id){const p=state.projects.find(x=>x.id===id);if(!p||!confirm('Delete "'+p.name+'"? This cannot be undone.'))return;const {error}=await db.from('game_projects').delete().eq('id',id);if(error){toast('Could not delete project: '+error.message);return}if(state.project?.id===id)showHome();state.projects=state.projects.filter(x=>x.id!==id);renderProjects();toast('Project deleted')}
-function normalizeScene(scene){const base=scene&&Array.isArray(scene.objects)?scene:defaultScene();return {...base,objects:base.objects.map(o=>({...o,id:o.id||newId(),type:o.type||'block',x:Number(o.x)||0,y:Number(o.y)||0,w:Math.max(8,Number(o.w)||40),h:Math.max(8,Number(o.h)||40),color:o.color||colors[o.type]||colors.block,solid:o.solid!==false,visible:o.visible!==false}))}}
-async function openProject(id){if(state.dirty&&state.project)await saveProject(true);const p=state.projects.find(x=>x.id===id);if(!p)return;state.project={...p,scene:normalizeScene(p.scene)};state.selectedId=null;state.dirty=false;state.playing=false;$('#projectHome').hidden=true;$('#editorView').hidden=false;$('#pageTitle').textContent=p.name;$('#saveState').innerHTML='<i></i> All changes saved';$('#playOverlay').hidden=true;renderEditor();drawScene()}
+function normalizeScene(scene){const base=scene&&Array.isArray(scene.objects)?scene:defaultScene();return {...base,script:typeof base.script==='string'?base.script:'',objects:base.objects.map(o=>({...o,id:o.id||newId(),type:o.type||'block',x:Number(o.x)||0,y:Number(o.y)||0,w:Math.max(8,Number(o.w)||40),h:Math.max(8,Number(o.h)||40),color:o.color||colors[o.type]||colors.block,solid:o.solid!==false,visible:o.visible!==false}))}}
+async function openProject(id){if(state.dirty&&state.project)await saveProject(true);const p=state.projects.find(x=>x.id===id);if(!p)return;state.project={...p,scene:normalizeScene(p.scene)};$('#pythonCode').value=state.project.scene.script||'# MetalGui game script\ndef update(game, dt):\n    pass\n';$('#pythonSaveState').textContent='Saved with project';state.selectedId=null;state.dirty=false;state.playing=false;$('#projectHome').hidden=true;$('#editorView').hidden=false;$('#pageTitle').textContent=p.name;$('#saveState').innerHTML='<i></i> All changes saved';$('#playOverlay').hidden=true;renderEditor();drawScene()}
 function selected(){return state.project?.scene.objects.find(o=>o.id===state.selectedId)||null}
 function markDirty(){if(!state.project)return;state.dirty=true;$('#saveState').innerHTML='<i style="background:#e3a84c"></i> Unsaved changes';$('#autosaveStatus').textContent='Changes pending…';clearTimeout(state.saveTimer);state.saveTimer=setTimeout(()=>saveProject(true),1200)}
 async function saveProject(silent=false){if(!state.project||!state.dirty)return;const project=state.project;$('#saveState').innerHTML='<i style="background:#e3a84c"></i> Saving…';const {data,error}=await db.from('game_projects').update({name:project.name,description:project.description,scene:project.scene}).eq('id',project.id).select().single();if(error){$('#saveState').textContent='Save failed';$('#autosaveStatus').textContent='Save failed · retry';if(!silent)toast('Save failed: '+error.message);return}Object.assign(project,data,{scene:normalizeScene(data.scene)});state.projects=state.projects.map(p=>p.id===data.id?data:p).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));state.dirty=false;$('#saveState').innerHTML='<i></i> All changes saved';$('#autosaveStatus').textContent='Autosaved just now';$('#pageTitle').textContent=project.name;if(!silent)toast('Project saved');renderProjects()}
+
 $('#saveProject').addEventListener('click',()=>saveProject(false));
+$('#togglePython').addEventListener('click',()=>{const panel=$('#pythonPanel');panel.hidden=!panel.hidden;if(!panel.hidden)$('#pythonCode').focus()});
+$('#pythonCode').addEventListener('input',()=>{if(!state.project)return;state.project.scene.script=$('#pythonCode').value;$('#pythonSaveState').textContent='Unsaved script changes';markDirty()});
+$('#insertPythonExample').addEventListener('click',()=>{const example="# MetalGui Python script\n# Runs every frame. dt is elapsed time in seconds.\ndef update(game, dt):\n    player = game.player\n    if player is None:\n        return\n    if game.keys['left']:\n        game.move(player, -240 * dt, 0)\n    if game.keys['right']:\n        game.move(player, 240 * dt, 0)\n";$('#pythonCode').value=example;if(state.project){state.project.scene.script=example;$('#pythonSaveState').textContent='Unsaved script changes';markDirty()}});
+$('#exportBuild').addEventListener('click',exportWindowsBuild);
+async function exportWindowsBuild(){
+ if(!state.project)return;
+ if(!window.JSZip){toast('Could not load ZIP exporter. Refresh and try again.');return}
+ const button=$('#exportBuild');button.disabled=true;button.textContent='Preparing…';
+ try{
+  state.project.scene.script=$('#pythonCode').value;
+  if(state.dirty)await saveProject(true);
+  if(state.dirty)throw new Error('Project could not be saved. Fix the save error before exporting.');
+  const projectName=state.project.name||'MetalGuiGame';
+  const safeName=projectName.replace(/[^a-z0-9_-]/gi,'_').replace(/^_+|_+$/g,'')||'MetalGuiGame';
+  const mainPy=[
+'import json, pygame',
+'from pathlib import Path',
+'from game_runtime import Game',
+'BASE = Path(__file__).resolve().parent',
+'def main():',
+'    scene = json.loads((BASE / "scene.json").read_text(encoding="utf-8"))',
+'    width, height = 1000, 620',
+'    try: width, height = [int(v) for v in scene.get("settings", {}).get("resolution", "1280x720").split("x", 1)]',
+'    except (ValueError, AttributeError): pass',
+'    width, height = min(width, 1600), min(height, 1000)',
+'    pygame.init()',
+'    screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)',
+'    pygame.display.set_caption(__TITLE__)',
+'    clock = pygame.time.Clock()',
+'    game = Game(scene.get("objects", []), width, height)',
+'    try:',
+'        import game_script',
+'        game.script = game_script',
+'    except Exception as exc: print("Python script load error:", exc)',
+'    running = True',
+'    while running:',
+'        dt = min(clock.tick(120) / 1000.0, 0.05)',
+'        for event in pygame.event.get():',
+'            if event.type == pygame.QUIT: running = False',
+'            elif event.type == pygame.KEYDOWN and game.script and hasattr(game.script, "on_key_down"):',
+'                try: game.script.on_key_down(game, event.key)',
+'                except Exception as exc: print("on_key_down error:", exc)',
+'        game.update(dt)',
+'        screen.fill(scene.get("settings", {}).get("background", "#eaf2e5"))',
+'        for obj in game.objects:',
+'            if not obj.get("visible", True): continue',
+'            try: color = pygame.Color(obj.get("color", "#8ce65d"))',
+'            except ValueError: color = pygame.Color("#8ce65d")',
+'            rect = pygame.Rect(round(obj.get("x",0)), round(obj.get("y",0)), max(1,round(obj.get("w",40))), max(1,round(obj.get("h",40))))',
+'            if obj.get("type") == "coin": pygame.draw.ellipse(screen, color, rect)',
+'            elif obj.get("type") == "enemy": pygame.draw.polygon(screen, color, [(rect.centerx,rect.top),(rect.right,rect.bottom),(rect.left,rect.bottom)])',
+'            elif obj.get("type") == "text": screen.blit(pygame.font.Font(None,max(16,rect.height)).render(str(obj.get("name","Text")),True,color),rect.topleft)',
+'            else: pygame.draw.rect(screen,color,rect,border_radius=3 if obj.get("type")=="player" else 0)',
+'        pygame.display.flip()',
+'    pygame.quit()',
+'if __name__ == "__main__": main()'
+].join('\n').replace('__TITLE__',JSON.stringify(projectName));
+  const runtimePy=[
+'import traceback, pygame',
+'class Game:',
+'    def __init__(self, objects, width, height):',
+'        self.objects=objects; self.width=width; self.height=height; self.script=None',
+'        self.keys={"left":False,"right":False,"up":False,"down":False,"space":False}',
+'        self.player=next((o for o in objects if o.get("type")=="player"),None)',
+'    def move(self,obj,dx,dy):',
+'        if obj in self.objects:',
+'            obj["x"]=max(0,min(self.width-obj.get("w",1),obj.get("x",0)+dx))',
+'            obj["y"]=max(0,min(self.height-obj.get("h",1),obj.get("y",0)+dy))',
+'    def spawn(self,name="Object",x=100,y=100,width=40,height=40,color="#8ce65d"):',
+'        obj={"name":name,"type":"block","x":x,"y":y,"w":width,"h":height,"color":color,"visible":True,"solid":True}; self.objects.append(obj); return obj',
+'    def quit(self): pygame.event.post(pygame.event.Event(pygame.QUIT))',
+'    def update(self,dt):',
+'        pressed=pygame.key.get_pressed()',
+'        self.keys.update({"left":pressed[pygame.K_LEFT] or pressed[pygame.K_a],"right":pressed[pygame.K_RIGHT] or pressed[pygame.K_d],"up":pressed[pygame.K_UP] or pressed[pygame.K_w],"down":pressed[pygame.K_DOWN] or pressed[pygame.K_s],"space":pressed[pygame.K_SPACE]})',
+'        if self.script and hasattr(self.script,"update"):',
+'            try: self.script.update(self,dt)',
+'            except Exception: traceback.print_exc(); self.script=None'
+].join('\n');
+  const buildBat='@echo off\r\nsetlocal\r\ncd /d "%~dp0"\r\npy -3 --version >nul 2>&1\r\nif errorlevel 1 (echo Install Python 3.11+ from https://www.python.org/downloads/windows/ and enable Add Python to PATH. & pause & exit /b 1)\r\npy -3 -m pip install --upgrade pip\r\nif errorlevel 1 goto failed\r\npy -3 -m pip install -r requirements.txt\r\nif errorlevel 1 goto failed\r\necho Building Windows executable...\r\npy -3 -m PyInstaller --noconfirm --clean --onefile --windowed --name "'+safeName+'" --collect-all pygame main.py\r\nif errorlevel 1 goto failed\r\necho Build complete: dist\\'+safeName+'.exe\r\npause\r\nexit /b 0\r\n:failed\r\necho Build failed. Read the error above.\r\npause\r\nexit /b 1\r\n';
+  const script=state.project.scene.script||'# MetalGui Python script\ndef update(game, dt):\n    pass\n';
+  const readme='# '+projectName+' - MetalGui Windows export\n\n1. Install Python 3.11+ from https://www.python.org/downloads/windows/ and enable Add Python to PATH.\n2. Double-click build_windows.bat.\n3. The executable will be created at dist/'+safeName+'.exe.\n\nThe first build needs internet to install pygame and PyInstaller. The resulting EXE runs independently of MetalGui Studio.\n\nPython API: update(game, dt) runs every frame; game.player is the first Player object; game.keys has left/right/up/down/space; game.move(object, dx, dy) moves an object; game.spawn(name, x, y, width, height, color) creates a rectangle; game.quit() closes the game.\n\nThis initial 2D runtime does not yet include a full physics/collision engine, audio editor, asset importer or remote one-click build service.';
+  const zip=new JSZip();
+  zip.file('scene.json',JSON.stringify(state.project.scene,null,2));
+  zip.file('game.py',script);
+  zip.file('game_script.py',script);
+  zip.file('main.py',mainPy);
+  zip.file('game_runtime.py',runtimePy);
+  zip.file('requirements.txt','pygame>=2.5,<3\npyinstaller>=6.0,<7\n');
+  zip.file('build_windows.bat',buildBat);
+  zip.file('README.md',readme);
+  const blob=await zip.generateAsync({type:'blob'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=safeName+'_Windows_Source.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  toast('Windows export package downloaded. Run build_windows.bat to create the .exe.');
+ }catch(err){toast('Export failed: '+(err?.message||String(err)))}
+ finally{button.disabled=false;button.textContent='Export Windows'}
+}
+
 function addObject(type){if(!state.project)return;const names={block:'Block',player:'Player',coin:'Coin',enemy:'Enemy',text:'Text'};const size=type==='player'?[34,52]:type==='coin'?[26,26]:type==='text'?[160,35]:[100,55];const o={id:newId(),name:names[type]+' '+(state.project.scene.objects.filter(x=>x.type===type).length+1),type,x:430+Math.round(Math.random()*80),y:type==='block'?430:340,w:size[0],h:size[1],color:colors[type]||colors.block,solid:type==='block'||type==='player'||type==='enemy',visible:true};state.project.scene.objects.push(o);state.selectedId=o.id;markDirty();renderEditor();drawScene()}
 $('#addBlock').addEventListener('click',()=>addObject('block'));$('#addPlayer').addEventListener('click',()=>addObject('player'));$('#addCoin').addEventListener('click',()=>addObject('coin'));$('#addEnemy').addEventListener('click',()=>addObject('enemy'));$('#addText').addEventListener('click',()=>addObject('text'));$('#addObjectQuick').addEventListener('click',()=>addObject('block'));
 function renderEditor(){if(!state.project)return;const list=$('#objectList');list.innerHTML='';state.project.scene.objects.forEach(o=>{const b=document.createElement('button');b.className='object-item'+(o.id===state.selectedId?' selected':'');const icons={block:'▰',player:'♟',coin:'✦',enemy:'◆',text:'T'};b.innerHTML='<span class="object-icon">'+icons[o.type]+'</span><span>'+esc(o.name)+'</span>';b.addEventListener('click',()=>selectObject(o.id));list.append(b)});$('#objectCount').textContent=state.project.scene.objects.length+' objects';const o=selected();$('#inspectorEmpty').hidden=!!o;$('#inspectorForm').hidden=!o;$('#selectedType').textContent=o?o.type.toUpperCase():'NONE';if(o){$('#objectName').value=o.name;$('#objectX').value=Math.round(o.x);$('#objectY').value=Math.round(o.y);$('#objectW').value=Math.round(o.w);$('#objectH').value=Math.round(o.h);$('#objectColor').value=o.color;$('#colorValue').textContent=o.color.toUpperCase();$('#objectSolid').checked=o.solid;$('#objectVisible').checked=o.visible}$('#zoomLabel').textContent=Math.round(state.zoom*100)+'%'}
