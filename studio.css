@@ -4,3 +4,16 @@
 
 /* Minimal Godot-inspired project creation */
 .project-setup{width:min(100%,460px);max-height:calc(100vh - 28px);overflow:auto}.project-setup form>.primary{margin-top:18px}.project-setup .setup-grid{margin-top:12px}.project-setup .setup-grid label{margin:8px 0;font-size:11px}.project-setup .setup-note,.project-setup .template-options,.project-setup .setup-label{display:none!important}.project-setup input[type=hidden]{display:none}@media(max-width:480px){.project-setup{padding:24px 18px}.project-setup .setup-grid{grid-template-columns:1fr}}
+
+/* Python scripting and export workflow */
+.editor-toolbar .tool-group.right{gap:6px}
+.python-panel{border-top:1px solid var(--line);background:#20231e;color:#f0f2ec;padding:14px 16px 12px}
+.python-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.python-heading strong{font:600 13px "Space Grotesk";margin-right:10px}
+.python-heading span,.python-footer{font-size:9px;letter-spacing:.8px;color:#a1aa99}
+.python-panel .outline{font-size:10px;padding:7px 10px;background:#2b3027;border-color:#444b40;color:#e8eee2}
+.python-help{font-size:11px;line-height:1.5;color:#adb5a6;margin:10px 0}
+#pythonCode{display:block;width:100%;min-height:270px;resize:vertical;background:#171915;color:#d9efc9;border:1px solid #3b4236;border-radius:8px;padding:14px;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4;outline:none;white-space:pre;overflow:auto}
+#pythonCode:focus{border-color:#9fce78;box-shadow:0 0 0 2px #b9f27c20}
+.python-footer{display:flex;justify-content:space-between;margin-top:9px}
+@media(max-width:900px){.editor-layout{grid-template-columns:140px minmax(0,1fr)}.inspector{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
