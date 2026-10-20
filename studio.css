@@ -46,3 +46,8 @@
 .python-suggestions button:hover{background:#384332}
 .python-console{background:#171915;border:1px solid #3b4236;border-radius:7px;color:#a9c99a;padding:9px 12px;margin-top:8px;font:11px/1.5 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:1050px){.editor-layout{grid-template-columns:185px minmax(0,1fr)}.inspector{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);padding:12px}.hierarchy{max-height:600px}}
+
+.python-tools{display:flex;align-items:center;gap:6px;position:relative}
+.code-block-menu{position:absolute;z-index:30;right:0;top:calc(100% + 5px);width:170px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px #0002}
+.code-block-menu button{display:block;width:100%;border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:6px;font-size:11px;color:#414a38}
+.code-block-menu button:hover{background:#edf5e6}
