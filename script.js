@@ -21,3 +21,30 @@ bubbleMenu?.querySelectorAll('a').forEach((link) => {
     bubbleButton.setAttribute('aria-expanded', 'false');
   });
 });
+
+// Keep the landing-page preview controls interactive instead of leaving decorative dead buttons.
+document.querySelectorAll('.project-open').forEach((button) => {
+  button.addEventListener('click', () => {
+    window.location.href = 'studio.html';
+  });
+});
+document.querySelectorAll('.project-row').forEach((row) => {
+  row.tabIndex = 0;
+  row.setAttribute('role', 'link');
+  row.setAttribute('aria-label', 'Open MetalGui workspace');
+  const open = () => { window.location.href = 'studio.html'; };
+  row.addEventListener('dblclick', open);
+  row.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      open();
+    }
+  });
+});
+window.addEventListener('error', (event) => {
+  const toast = document.querySelector('#toast');
+  if (toast && event.message) {
+    toast.textContent = 'A page error occurred. Refresh the page; if it continues, check the browser console.';
+    toast.classList.add('show');
+  }
+});
