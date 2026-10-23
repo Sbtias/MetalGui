@@ -48,3 +48,13 @@ window.addEventListener('error', (event) => {
     toast.classList.add('show');
   }
 });
+
+// Sticky topbar glass effect on scroll
+const topbar = document.querySelector('.topbar');
+if (topbar) {
+  const onScroll = () => {
+    topbar.classList.toggle('is-scrolled', window.scrollY > 12);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
