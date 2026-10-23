@@ -212,3 +212,16 @@ $('#playButton').addEventListener('click',()=>state.playing?stopPlay():startPlay
 (async function init(){const params=new URLSearchParams(location.search);const requestedTemplate=params.get('projectTemplate');if(requestedTemplate){state.localOnly=true;state.user={id:'local',email:'Local workspace'};$('#authScreen').hidden=true;$('#app').hidden=false;$('#userEmail').textContent='Local workspace';$('#accountButton').textContent='Local mode';state.projects=readLocalProjects();await createTemplateProject(requestedTemplate);return}if(!db){message($('#authMessage'),'Cloud sign-in is unavailable. You can still use the local workspace below.',true);return}try{const {data,error}=await db.auth.getSession();if(error)throw error;if(data.session?.user)await startApp(data.session.user)}catch(err){message($('#authMessage'),'Cloud sign-in unavailable: '+(err?.message||String(err))+'. You can still open the local workspace below.',true)}})();
 window.addEventListener('error',event=>{const detail=event.message||'Unknown script error';console.error('[MetalGui Studio]',detail,event.error||'');toast('Studio error: '+detail)});
 window.addEventListener('unhandledrejection',event=>{const detail=event.reason?.message||String(event.reason||'Unknown async error');console.error('[MetalGui Studio async]',detail);toast('Studio error: '+detail)});
+
+const changelogModal = document.querySelector('#changelogModal');
+document.querySelector('#openChangelog')?.addEventListener('click', () => { if (changelogModal) changelogModal.hidden = false; });
+document.querySelector('#closeChangelog')?.addEventListener('click', () => { if (changelogModal) changelogModal.hidden = true; });
+changelogModal?.addEventListener('click', (event) => { if (event.target === changelogModal) changelogModal.hidden = true; });
+document.addEventListener('click', (event) => {
+  const menu = document.querySelector('#addNodeMenuPanel');
+  const button = document.querySelector('#addNodeMenu');
+  if (!menu || menu.hidden) return;
+  if (menu.contains(event.target) || button?.contains(event.target) || event.target?.closest?.('#addObjectQuick')) return;
+  menu.hidden = true;
+  button?.setAttribute('aria-expanded', 'false');
+});
