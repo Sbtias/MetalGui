@@ -3,6 +3,8 @@
 ## 2026-10-23 — Studio overhaul
 
 ### Added
+- AI Architect. Describe a game and Studio builds a playable level: platformer, endless runner, top-down maze, or asteroid dodge, with gravity, coins, hazards, and a goal. Press Play. No Python download required for these games.
+
 - Changelog inside Studio (button in the top bar) and this file.
 - Dark editor workspace: toolbar, hierarchy, scene view, inspector, and Python panel.
 - Larger Add Node menu with clearer groups.

@@ -642,3 +642,12 @@ body { background: #10140f; color: #e7eee0; }
   .status-keys { display: none; }
   .app { grid-template-columns: 1fr; }
 }
+
+.ai-modal { width: min(100%, 640px); background:#171c15; color:#e7eee0; }
+.ai-modal h2 { color:#f4f8ef; }
+.ai-modal textarea { width:100%; min-height:110px; resize:vertical; border-radius:12px; border:1px solid #33402e; background:#10140f; color:#f3f7ee; padding:12px; }
+.ai-chips { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 14px; }
+.ai-chips button { border:1px solid #33402e; background:#121710; color:#d7e2cc; border-radius:999px; padding:7px 10px; font-size:11px; font-weight:700; }
+.ai-chips button:hover { background:#243022; color:#f3f7ee; }
+#openAi { margin-top:0; }
+#playScore { font-variant-numeric: tabular-nums; letter-spacing:.4px; }

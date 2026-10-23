@@ -225,3 +225,269 @@ document.addEventListener('click', (event) => {
   menu.hidden = true;
   button?.setAttribute('aria-expanded', 'false');
 });
+
+const THEMES = {
+  forest: { bg:'#c6e3a4', solid:'#3d6a34', platform:'#6fa84a', coin:'#f6d34d', hazard:'#d35a4a', enemy:'#8d4b2f', player:'#2f62d6', goal:'#f4f0c8' },
+  neon: { bg:'#14081f', solid:'#2a1244', platform:'#6d32a8', coin:'#6ff0ff', hazard:'#ff3d7a', enemy:'#ff7ad9', player:'#f4f27a', goal:'#d6ff4a' },
+  lava: { bg:'#2a120f', solid:'#4a2018', platform:'#8a4030', coin:'#ffd15c', hazard:'#ff5a1f', enemy:'#ff8844', player:'#7ec8ff', goal:'#9af7ff' },
+  ocean: { bg:'#9fd7ea', solid:'#1d5c78', platform:'#2f86a8', coin:'#ffe27a', hazard:'#ef5d5d', enemy:'#14384c', player:'#f7fbff', goal:'#d9ff6a' },
+  candy: { bg:'#f7c1dc', solid:'#c45b8a', platform:'#ff8fb8', coin:'#fff1a8', hazard:'#6d458c', enemy:'#5b2d6e', player:'#ffffff', goal:'#b8ff7a' },
+  space: { bg:'#070b16', solid:'#1b2438', platform:'#31425f', coin:'#f4e27a', hazard:'#d5dbe8', enemy:'#8e99b0', player:'#7ee0ff', goal:'#d6ff4a' }
+};
+
+function hashStr(s){ let h=2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function pickTheme(text){
+  const t = text.toLowerCase();
+  if (/neon|cyber|rooftop|synth/.test(t)) return 'neon';
+  if (/lava|volcano|fire|hell|crystal cave/.test(t)) return 'lava';
+  if (/ocean|sea|water|pirate|island/.test(t)) return 'ocean';
+  if (/candy|sweet|dessert|pink/.test(t)) return 'candy';
+  if (/space|asteroid|star|galaxy|void/.test(t)) return 'space';
+  if (/forest|jungle|tree|mushroom|cozy/.test(t)) return 'forest';
+  return ['forest','neon','lava','ocean','candy','space'][hashStr(t) % 6];
+}
+function interpretPrompt(text){
+  const brief = String(text || '').trim();
+  const t = brief.toLowerCase();
+  let mode = 'platformer';
+  if (/dodge|asteroid|survive|arena|falling/.test(t)) mode = 'dodge';
+  else if (/runner|endless|auto-?run|lane/.test(t)) mode = 'runner';
+  else if (/top-?down|maze|treasure|dungeon|explore/.test(t)) mode = 'topdown';
+  const themeName = pickTheme(brief || mode);
+  const title = (brief.replace(/\s+/g,' ').slice(0, 42) || 'AI game');
+  return { brief, mode, themeName, theme: THEMES[themeName], title, doubleJump: /double/.test(t) || mode === 'neon' && /jump/.test(t) || themeName === 'neon' };
+}
+function makeNode(partial){
+  return { id:newId(), components:[], solid:false, visible:true, ...partial };
+}
+function buildScene(plan){
+  const theme = plan.theme;
+  const objects = [];
+  const solid = (name,x,y,w,h,color) => objects.push(makeNode({ name, type:'block', role:'solid', x, y, w, h, color: color || theme.platform, solid:true }));
+  const coin = (x,y) => objects.push(makeNode({ name:'Coin', type:'coin', role:'coin', x, y, w:22, h:22, color: theme.coin }));
+  const spike = (x,y,w) => objects.push(makeNode({ name:'Hazard', type:'enemy', role:'hazard', x, y, w:w||36, h:22, color: theme.hazard }));
+  const goal = (x,y) => objects.push(makeNode({ name:'Goal', type:'hexagon', role:'goal', x, y, w:36, h:48, color: theme.goal }));
+  const enemy = (x,y,distance) => objects.push(makeNode({ name:'Enemy', type:'enemy', role:'enemy', x, y, w:32, h:32, color: theme.enemy, patrol:{ axis:'x', origin:x, distance, speed:1.4, t:0 } }));
+  let rules;
+  if (plan.mode === 'dodge') {
+    objects.push(makeNode({ name:'Pilot', type:'player', role:'player', x:470, y:300, w:28, h:28, color: theme.player, solid:true }));
+    rules = { mode:'dodge', speed:280, survive:40, goal:'survive', help:'Move with arrows or WASD. Survive the asteroids.', win:'You survived the field.', hit:'An asteroid got you.' };
+  } else if (plan.mode === 'topdown') {
+    objects.push(makeNode({ name:'Hero', type:'player', role:'player', x:80, y:80, w:28, h:28, color: theme.player, solid:true }));
+    [[0,0,1000,24],[0,596,1000,24],[0,0,24,620],[976,0,24,620],[180,120,24,280],[180,120,220,24],[360,240,24,220],[480,80,24,260],[620,200,24,280],[620,200,180,24],[120,420,520,24],[760,80,24,360]].forEach(([x,y,w,h],i)=>solid('Wall '+(i+1),x,y,w,h,theme.solid));
+    [[230,160],[250,300],[430,140],[700,140],[700,360],[500,480],[300,500],[860,500]].forEach(([x,y])=>coin(x,y));
+    enemy(400,400,90);
+    objects.at(-1).color = theme.enemy;
+    rules = { mode:'topdown', speed:220, goal:'collect-all', help:'Arrows or WASD. Collect every coin. Avoid the hunter.', win:'Treasure secured.', hit:'Caught.' };
+  } else if (plan.mode === 'runner') {
+    objects.push(makeNode({ name:'Runner', type:'player', role:'player', x:160, y:470, w:32, h:48, color: theme.player, solid:true }));
+    for (let i=0;i<6;i++) {
+      const x = i*180;
+      solid('Ground '+(i+1), x, 540, 150, 28, theme.solid);
+      if (i%2===1) coin(x+60, 490);
+      if (i%3===2) spike(x+70, 518, 28);
+    }
+    solid('Step', 980, 460, 110, 22, theme.platform);
+    coin(1010, 420);
+    rules = { mode:'runner', speed:220, gravity:1500, jump:560, maxJumps: plan.doubleJump ? 2 : 1, goal:'score', help:'Auto-run. Jump with Space, W, or Up. Grab fruit, avoid spikes.', hit:'You crashed.' };
+  } else {
+    objects.push(makeNode({ name:'Player', type:'player', role:'player', x:48, y:490, w:32, h:48, color: theme.player, solid:true }));
+    solid('Ground A', 0, 560, 280, 60, theme.solid);
+    solid('Ground B', 380, 560, 200, 60, theme.solid);
+    solid('Ground C', 680, 560, 320, 60, theme.solid);
+    spike(290, 538, 70);
+    solid('Platform 1', 200, 450, 150, 18, theme.platform);
+    solid('Platform 2', 420, 360, 150, 18, theme.platform);
+    solid('Platform 3', 640, 280, 140, 18, theme.platform);
+    solid('Platform 4', 820, 200, 150, 18, theme.platform);
+    [[230,410],[460,320],[680,240],[860,160],[120,520],[450,520]].forEach(([x,y])=>coin(x,y));
+    enemy(420, 528, 70);
+    goal(900, 140);
+    rules = { mode:'platformer', speed:250, gravity:1550, jump:580, maxJumps: plan.doubleJump ? 2 : 1, goal:'collect-then-reach', help: (plan.doubleJump?'Double jump':'Jump')+' with Space, W, or Up. Collect the coins, then touch the goal.', win:'Level clear.', hit:'Ouch.' };
+  }
+  const script = [
+    '# Generated by MetalGui AI Architect',
+    '# This level plays natively in the browser (gravity, coins, hazards, goal).',
+    '# mode: '+rules.mode+'   theme: '+plan.themeName,
+    '# '+ (plan.brief || plan.title),
+    'def update(game, dt):',
+    '    player = game.player',
+    '    if player is None:',
+    '        return',
+    "    if game.keys['left']:",
+    '        game.move(player, -240 * dt, 0)',
+    "    if game.keys['right']:",
+    '        game.move(player, 240 * dt, 0)',
+    ''
+  ].join('\n');
+  return { version:1, script, objects, files:[], components:[], settings:{ background: theme.bg, gravity: rules.gravity || 0, resolution:'1000x620', orientation:'landscape', platform:'web', renderMode:'2d', template:'ai', runtime:'native', rules, help: rules.help, theme: plan.themeName } };
+}
+function overlaps(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+function endNative(text){ state.native.over = true; const help = $('#playHelp'); if (help) help.textContent = text + '  ·  Stop to edit'; toast(text); drawScene(); }
+function startNativePlay(){
+  const scene = state.project.scene;
+  scene.objects = scene.objects.filter(o => !o.temp);
+  scene.objects.forEach(o => { o._startX = o.x; o._startY = o.y; o._startVisible = o.visible !== false; });
+  state.native = { vy:0, grounded:false, jumps:0, jumpHeld:false, score:0, time:0, over:false, coins: scene.objects.filter(o => o.role==='coin').length, spawnTimer:0.4 };
+  state.playing = true;
+  $('#playOverlay').hidden = false;
+  $('#canvasHint').hidden = true;
+  const help = $('#playHelp'); if (help) help.textContent = scene.settings.help || 'Play';
+  const score = $('#playScore'); if (score) score.textContent = scene.settings.rules?.mode==='dodge' ? '0s' : '0';
+  $('#playButton').textContent = '▶ Playing';
+  state.lastTime = performance.now();
+  state.playFrame = requestAnimationFrame(playLoopNative);
+}
+function playLoopNative(now){
+  if (!state.playing || !state.native || !state.project) return;
+  const dt = Math.min(0.033, (now - state.lastTime) / 1000);
+  state.lastTime = now;
+  const n = state.native;
+  const scene = state.project.scene;
+  const rules = scene.settings.rules;
+  const player = scene.objects.find(o => o.role==='player');
+  if (!player) { cancelAnimationFrame(state.playFrame); return; }
+  if (!n.over) {
+    n.time += dt;
+    const keys = state.keys || {};
+    const left = !!(keys.ArrowLeft || keys.a);
+    const right = !!(keys.ArrowRight || keys.d);
+    const up = !!(keys.ArrowUp || keys.w);
+    const down = !!(keys.ArrowDown || keys.s);
+    const jump = !!(keys.Space || keys[' ']);
+    for (const o of scene.objects) {
+      if (!o.patrol) continue;
+      o.patrol.t = (o.patrol.t || 0) + dt * (o.patrol.speed || 1);
+      const wave = Math.sin(o.patrol.t);
+      if (o.patrol.axis === 'y') o.y = o.patrol.origin + wave * o.patrol.distance;
+      else o.x = o.patrol.origin + wave * o.patrol.distance;
+    }
+    if (rules.mode === 'platformer' || rules.mode === 'runner') {
+      if (rules.mode === 'runner') {
+        const scroll = rules.speed * dt;
+        for (const o of scene.objects) {
+          if (o === player) continue;
+          o.x -= scroll;
+          if (o.x + o.w < -40) { o.x += 1180; if (o.role==='coin' || o.role==='hazard') o.visible = true; }
+        }
+        player.x = 160;
+      } else {
+        let vx = 0;
+        if (left) vx -= rules.speed;
+        if (right) vx += rules.speed;
+        player.x += vx * dt;
+        for (const o of scene.objects) {
+          if (o === player || !o.solid || o.visible === false) continue;
+          if (!overlaps(player, o)) continue;
+          player.x = vx > 0 ? o.x - player.w : o.x + o.w;
+        }
+      }
+      n.vy = Math.min(900, n.vy + rules.gravity * dt);
+      player.y += n.vy * dt;
+      n.grounded = false;
+      for (const o of scene.objects) {
+        if (o === player || !o.solid || o.visible === false) continue;
+        if (!overlaps(player, o)) continue;
+        if (n.vy >= 0) { player.y = o.y - player.h; n.vy = 0; n.grounded = true; n.jumps = 0; }
+        else { player.y = o.y + o.h; n.vy = 0; }
+      }
+      if (jump && !n.jumpHeld && (n.grounded || n.jumps < rules.maxJumps)) { n.vy = -rules.jump; n.jumps += 1; n.grounded = false; }
+      n.jumpHeld = jump;
+      if (player.y > 680) { endNative(rules.hit || 'Fell'); }
+    } else {
+      let vx = 0, vy = 0;
+      if (left) vx -= rules.speed;
+      if (right) vx += rules.speed;
+      if (up) vy -= rules.speed;
+      if (down) vy += rules.speed;
+      player.x = Math.max(8, Math.min(1000 - player.w - 8, player.x + vx * dt));
+      player.y = Math.max(8, Math.min(620 - player.h - 8, player.y + vy * dt));
+      for (const o of scene.objects) {
+        if (o === player || !o.solid || o.visible === false) continue;
+        if (!overlaps(player, o)) continue;
+        player.x -= vx * dt; player.y -= vy * dt; break;
+      }
+      if (rules.mode === 'dodge') {
+        n.spawnTimer -= dt;
+        if (n.spawnTimer <= 0) {
+          n.spawnTimer = Math.max(0.25, 0.9 - n.time * 0.012);
+          scene.objects.push(makeNode({ name:'Asteroid', type:'enemy', role:'hazard', x: 24 + Math.random()*940, y:-36, w:26, h:26, color: planColor(scene), solid:false, visible:true, vy: 170 + Math.random()*240, temp:true }));
+        }
+        for (const o of scene.objects) if (o.temp) { o.y += (o.vy || 200) * dt; if (o.y > 660) o.visible = false; }
+        const scoreEl = $('#playScore'); if (scoreEl) scoreEl.textContent = Math.floor(n.time) + 's';
+        if (n.time >= (rules.survive || 40)) endNative(rules.win || 'You survived');
+      }
+    }
+    if (!n.over) {
+      for (const o of scene.objects) {
+        if (o === player || o.visible === false) continue;
+        if (!overlaps(player, o)) continue;
+        if (o.role === 'coin') {
+          o.visible = false; n.score += 1;
+          if (rules.goal === 'collect-all' && n.score >= n.coins) { endNative(rules.win || 'All collected'); break; }
+        } else if (o.role === 'hazard' || o.role === 'enemy') { endNative(rules.hit || 'Hit'); break; }
+        else if (o.role === 'goal') {
+          if (rules.goal === 'collect-then-reach' && n.score < n.coins) { const help=$('#playHelp'); if (help) help.textContent = 'Coins '+n.score+'/'+n.coins+' before the goal'; }
+          else { endNative(rules.win || 'You made it'); break; }
+        }
+      }
+      if (rules.mode !== 'dodge') { const scoreEl = $('#playScore'); if (scoreEl) scoreEl.textContent = n.score+' / '+n.coins; }
+    }
+  }
+  drawScene();
+  if (state.playing) state.playFrame = requestAnimationFrame(playLoopNative);
+}
+function planColor(scene){ return THEMES[scene.settings.theme]?.hazard || '#d0d6e2'; }
+async function createAiGame(promptText){
+  const plan = interpretPrompt(promptText);
+  if (!plan.brief) throw new Error('Describe the game first.');
+  const scene = buildScene(plan);
+  let data = null;
+  if (db && state.user && state.user.id && state.user.id !== 'local' && !state.localOnly) {
+    try {
+      const result = await db.from('game_projects').insert({ user_id: state.user.id, name: plan.title, description: plan.brief, scene }).select().single();
+      if (!result.error) data = result.data;
+    } catch (err) { console.warn(err); }
+  }
+  if (!data) data = { id:newId(), user_id: state.user?.id || 'local', name: plan.title, description: plan.brief, scene, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+  state.projects = state.projects.filter(p => p.id !== data.id);
+  state.projects.unshift(data);
+  writeLocalProjects();
+  renderProjects();
+  $('#aiModal').hidden = true;
+  await openProject(data.id);
+  toast('Game ready. Press Play.');
+}
+$('#openAi')?.addEventListener('click', () => { $('#aiModal').hidden = false; $('#aiPrompt')?.focus(); message($('#aiMessage'), ''); });
+$('#closeAi')?.addEventListener('click', () => { $('#aiModal').hidden = true; });
+$('#aiModal')?.addEventListener('click', (event) => { if (event.target === $('#aiModal')) $('#aiModal').hidden = true; });
+$$('#aiChips [data-prompt]').forEach(button => button.addEventListener('click', () => { $('#aiPrompt').value = button.dataset.prompt; $('#aiPrompt').focus(); }));
+$('#aiForm')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = $('#aiGenerate');
+  button.disabled = true;
+  const previous = button.textContent;
+  button.textContent = 'Building…';
+  try { await createAiGame($('#aiPrompt').value); }
+  catch (err) { message($('#aiMessage'), err.message || String(err), true); }
+  finally { button.disabled = false; button.textContent = previous; }
+});
+const metalStartPlay = startPlay;
+const metalStopPlay = stopPlay;
+startPlay = async function(){
+  if (!state.project || state.playing) return;
+  if (state.project.scene?.settings?.runtime === 'native') { startNativePlay(); return; }
+  return metalStartPlay();
+};
+stopPlay = function(){
+  if (state.project?.scene?.objects) {
+    state.project.scene.objects = state.project.scene.objects.filter(o => !o.temp);
+    for (const o of state.project.scene.objects) {
+      if ('_startVisible' in o) { o.visible = o._startVisible; delete o._startVisible; }
+    }
+  }
+  state.native = null;
+  const score = $('#playScore'); if (score) score.textContent = '';
+  metalStopPlay();
+};
+
