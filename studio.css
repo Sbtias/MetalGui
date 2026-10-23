@@ -269,7 +269,7 @@ body {
   border-radius: 16px;
   border-color: #d8e0d0;
   box-shadow: 0 4px 24px rgba(28, 33, 24, 0.04);
-  overflow: hidden;
+  overflow: visible;
 }
 .editor-toolbar {
   background: linear-gradient(180deg, #fbfcf9 0%, #f6f8f3 100%);
